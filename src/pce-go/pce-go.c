@@ -125,7 +125,7 @@ int LoadCard(const char *ROM, size_t fsize)
 	offset = fsize & 0x1fff;
 
 	// read ROM
-	PCE.ROM = ROM;
+	PCE.ROM = (uint8_t*)ROM;
 
 	if (PCE.ROM == NULL)
 	{

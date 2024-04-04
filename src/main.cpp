@@ -4,8 +4,6 @@
 /* Standard library includes */
 #include <cstdio>
 #include <cstdint>
-#include <windows.h>
-
 
 extern "C" {
 // #include "pce-go/pce-go.h"
@@ -17,6 +15,7 @@ size_t filesize = 0;
 #define AUDIO_BUFFER_LENGTH (AUDIO_SAMPLE_RATE / 60 + 1)
 
 #if !PICO_ON_DEVICE
+#include <windows.h>
 #include "MiniFB.h"
 uint8_t ROM[0x400000];
 uint8_t SCREEN[XBUF_HEIGHT][XBUF_WIDTH];
@@ -575,7 +574,7 @@ void osd_input_read(uint8_t joypads[8])
     joypads[0] = buttons;
 }
 
-
+#if !PICO_ON_DEVICE
 DWORD WINAPI SoundThread(LPVOID lpParam) {
     WAVEHDR waveHeaders[4];
 
@@ -625,7 +624,7 @@ DWORD WINAPI SoundThread(LPVOID lpParam) {
     }
     return 0;
 }
-
+#endif
 
 int main(int argc, char** argv) {
 #if !PICO_ON_DEVICE
@@ -661,9 +660,10 @@ int main(int argc, char** argv) {
         gpio_put(PICO_DEFAULT_LED_PIN, false);
 #endif
     }
+#if !PICO_ON_DEVICE
     // Create sound thread
     HANDLE hThread = CreateThread(NULL, 0, SoundThread, NULL, 0, NULL);
-
+#endif
     while (!reboot) {
 
             osd_input_read(PCE.Joypad.regs);
