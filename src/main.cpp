@@ -236,27 +236,27 @@ bool isExecutable(const char pathname[255], const char* extensions) {
     return false;
 }
 
+constexpr int window_y = (TEXTMODE_ROWS - 5) / 2;
+constexpr int window_x = (TEXTMODE_COLS - 43) / 2;
+
 bool filebrowser_loadfile(const char pathname[256]) {
     UINT bytes_read = 0;
     FIL file;
 
-    constexpr int window_y = (TEXTMODE_ROWS - 5) / 2;
-    constexpr int window_x = (TEXTMODE_COLS - 43) / 2;
-
-    draw_window("Loading firmware", window_x, window_y, 43, 5);
+    draw_window(" Loading firmware", window_x, window_y, 43, 5);
 
     FILINFO fileinfo;
     f_stat(pathname, &fileinfo);
     filesize = fileinfo.fsize;
 
     if (16384 - 64 << 10 < fileinfo.fsize) {
-        draw_text("ERROR: ROM too large! Canceled!!", window_x + 1, window_y + 2, 13, 1);
+        draw_text(" ERROR: ROM too large! Canceled!!", window_x + 1, window_y + 2, 13, 1);
         sleep_ms(5000);
         return false;
     }
 
 
-    draw_text("Loading...", window_x + 1, window_y + 2, 10, 1);
+    draw_text(" Loading...", window_x + 1, window_y + 2, 10, 1);
     sleep_ms(500);
 
 
@@ -288,7 +288,7 @@ bool filebrowser_loadfile(const char pathname[256]) {
     }
     f_close(&file);
     multicore_lockout_end_blocking();
-    // restore_interrupts(ints);
+    draw_text(" Loading passed", window_x + 1, window_y + 2, 10, 1);
     return true;
 }
 
@@ -651,12 +651,14 @@ int main(int argc, char** argv) {
     }
     graphics_set_mode(TEXTMODE_DEFAULT);
     filebrowser(HOME_DIR, "pce");
-    graphics_set_mode(GRAPHICSMODE_DEFAULT);
 #endif
 
     if (!InitPCE(AUDIO_SAMPLE_RATE, true, ROM, filesize)) {
-
 #if PICO_ON_DEVICE
+        draw_text(" Init failed     ", window_x + 1, window_y + 2, 10, 1);
+        while(1);
+    } else {
+        graphics_set_mode(GRAPHICSMODE_DEFAULT);
         gpio_put(PICO_DEFAULT_LED_PIN, false);
 #endif
     }
@@ -665,21 +667,14 @@ int main(int argc, char** argv) {
     HANDLE hThread = CreateThread(NULL, 0, SoundThread, NULL, 0, NULL);
 #endif
     while (!reboot) {
-
-            osd_input_read(PCE.Joypad.regs);
-            pce_run();
-            //osd_vsync();
+        osd_input_read(PCE.Joypad.regs);
+        pce_run();
+        //osd_vsync();
         // for(int x = 0; x <32; x++) graphics_set_palette(x, RGB888(bitmap.pal.color[x][0], bitmap.pal.color[x][1], bitmap.pal.color[x][2]));
 #if !PICO_ON_DEVICE
         if (mfb_update(SCREEN, 60) == -1)
             reboot = true;
-#else
-        sleep_ms(33);
-        gpio_put(PICO_DEFAULT_LED_PIN, true);
-        sleep_ms(33);
-        gpio_put(PICO_DEFAULT_LED_PIN, false);
-        #endif
-
+#endif
     }
     reboot = false;
 }
