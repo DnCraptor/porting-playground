@@ -652,10 +652,12 @@ int main(int argc, char** argv) {
     graphics_set_mode(TEXTMODE_DEFAULT);
     filebrowser(HOME_DIR, "pce");
 #endif
-
-    if (!InitPCE(AUDIO_SAMPLE_RATE, true, ROM, filesize)) {
+    int ires = InitPCE(AUDIO_SAMPLE_RATE, true, ROM, filesize);
+    if (ires) {
 #if PICO_ON_DEVICE
-        draw_text(" Init failed     ", window_x + 1, window_y + 2, 10, 1);
+        char tmp[64] = { 0 };
+        snprintf(tmp, 64, " Init failed: %d     ", ires);
+        draw_text(tmp, window_x + 1, window_y + 2, 10, 1);
         while(1);
     } else {
         graphics_set_mode(GRAPHICSMODE_DEFAULT);

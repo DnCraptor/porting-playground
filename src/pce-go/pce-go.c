@@ -250,13 +250,13 @@ InitPCE(int samplerate, bool stereo, const void *ROM, size_t fsize)
 		return 1;
 
 	if (psg_init(samplerate, stereo))
-		return 1;
+		return 2;
 
 	if (pce_init())
-		return 1;
+		return 3;
 
 	if (ROM && LoadCard(ROM, fsize))
-		return 1;
+		return 4;
 
 	ResetPCE(0);
 
